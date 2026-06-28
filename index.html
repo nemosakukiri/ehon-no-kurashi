@@ -114,7 +114,7 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
 /* ===== 広場シーン ===== */
 #scene {
   position: fixed; left: 0; top: 48px; right: 0; bottom: 64px;
-  background-image: url('/ehon-no-kurashi/hiroba-bg.webp');
+  background-image: url('/hiroba-bg.webp');
   background-size: cover; background-position: center top;
   background-color: #dce8d0; overflow: hidden;
 }
@@ -252,7 +252,7 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
 
 <!-- 表紙 -->
 <div id="screen-cover" onclick="openBook()">
-  <img src="/ehon-no-kurashi/cover.webp" alt="絵本のくらし">
+  <img src="/cover.webp" alt="絵本のくらし">
 </div>
 
 <!-- STEP 1: キャラクター作成 -->
@@ -368,30 +368,30 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
 
 <script>
 const CHARS = [
-  {name:"くま", url:"/ehon-no-kurashi/chars/kuma.png"},
-  {name:"うさぎ", url:"/ehon-no-kurashi/chars/usagi.png"},
-  {name:"しばいぬ", url:"/ehon-no-kurashi/chars/shibainu.png"},
-  {name:"ねこ", url:"/ehon-no-kurashi/chars/neko.png"},
-  {name:"パンダ", url:"/ehon-no-kurashi/chars/panda.png"},
-  {name:"いぬ", url:"/ehon-no-kurashi/chars/inu.png"},
-  {name:"りす", url:"/ehon-no-kurashi/chars/risu.png"},
-  {name:"はりねずみ", url:"/ehon-no-kurashi/chars/harinezumi.png"},
-  {name:"ペンギン", url:"/ehon-no-kurashi/chars/penguin.png"},
-  {name:"カワウソ", url:"/ehon-no-kurashi/chars/kawauso.png"},
-  {name:"きつね", url:"/ehon-no-kurashi/chars/kitsune.png"},
-  {name:"ひつじ", url:"/ehon-no-kurashi/chars/hitsuji.png"},
-  {name:"ねずみ", url:"/ehon-no-kurashi/chars/nezumi.png"},
-  {name:"ハムスター", url:"/ehon-no-kurashi/chars/hamster.png"}
+  {name:"くま", url:"/chars/kuma.png"},
+  {name:"うさぎ", url:"/chars/usagi.png"},
+  {name:"しばいぬ", url:"/chars/shibainu.png"},
+  {name:"ねこ", url:"/chars/neko.png"},
+  {name:"パンダ", url:"/chars/panda.png"},
+  {name:"いぬ", url:"/chars/inu.png"},
+  {name:"りす", url:"/chars/risu.png"},
+  {name:"はりねずみ", url:"/chars/harinezumi.png"},
+  {name:"ペンギン", url:"/chars/penguin.png"},
+  {name:"カワウソ", url:"/chars/kawauso.png"},
+  {name:"きつね", url:"/chars/kitsune.png"},
+  {name:"ひつじ", url:"/chars/hitsuji.png"},
+  {name:"ねずみ", url:"/chars/nezumi.png"},
+  {name:"ハムスター", url:"/chars/hamster.png"}
 ];
 
 const ITEMS = [
-  {name:"コーヒー", url:"/ehon-no-kurashi/items/coffee.png"},
-  {name:"本", url:"/ehon-no-kurashi/items/book.png"},
-  {name:"傘", url:"/ehon-no-kurashi/items/umbrella.png"},
-  {name:"麦わら帽子", url:"/ehon-no-kurashi/items/hat.png"},
-  {name:"バッグ", url:"/ehon-no-kurashi/items/bag.png"},
-  {name:"車椅子", url:"/ehon-no-kurashi/items/wheelchair.png"},
-  {name:"白杖", url:"/ehon-no-kurashi/items/cane.png"}
+  {name:"コーヒー", url:"/items/coffee.png"},
+  {name:"本", url:"/items/book.png"},
+  {name:"傘", url:"/items/umbrella.png"},
+  {name:"麦わら帽子", url:"/items/hat.png"},
+  {name:"バッグ", url:"/items/bag.png"},
+  {name:"車椅子", url:"/items/wheelchair.png"},
+  {name:"白杖", url:"/items/cane.png"}
 ];
 
 function makeSprite(idx, size) {
