@@ -366,7 +366,12 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
   <button id="say-btn" onclick="say()">つぶやく</button>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL = 'https://bruhxkajbdgzrexmhtjq.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Fs_SbdSdpGkJvwv3SeORqw_1wYruTJq';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const CHARS = [
   {name:"くま", url:"/chars/kuma.png"},
   {name:"うさぎ", url:"/chars/usagi.png"},
@@ -534,13 +539,17 @@ function createMyAvatar() {
 }
 
 // ===== 吹き出し =====
-function say() {
+async function say() {
   const input = document.getElementById('msg-input');
   const text = input.value.trim();
   if (!text) return;
-  showBubble(text, myX, true);
-  addToLog(myCharIdx, text, true);
   input.value = '';
+  showBubble(text, myX, true);
+  await sb.from('messages').insert({
+    character_name: myName,
+    role: myRole,
+    content: text
+  });
 }
 function showBubble(text, xPct, isMe) {
   const scene = document.getElementById('scene');
@@ -566,28 +575,18 @@ function showManaReply(text) {
 }
 
 // ===== 独り言ログ =====
-const logLines = [
-  {ci:2,  text:'犬かわいい'},
-  {ci:7,  text:'眠い'},
-  {ci:3,  text:'病院つかれた'},
-  {ci:1,  text:'雨だなあ'},
-  {ci:5,  text:'窓口にまた来週って言われた'},
-  {ci:0,  text:'コーヒーがおいしい朝'},
-  {ci:9,  text:'薬が変わって少し不安'},
-  {ci:4,  text:'ここ来るとすこし落ち着く'},
-  {ci:8,  text:'また書類書き直しって言われた'},
-  {ci:6,  text:'なんとなく話したくて'},
-  {ci:11, text:'ひとりじゃないかもって思う'},
-  {ci:13, text:'お茶でも飲もう'},
-];
-let logIdx = 0;
-const logTimes = ['さっき','2分前','5分前','8分前','11分前','14分前'];
+function timeAgo(isoStr) {
+  const diff = Math.floor((Date.now() - new Date(isoStr)) / 1000);
+  if (diff < 60) return 'さっき';
+  if (diff < 3600) return `${Math.floor(diff/60)}分前`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}時間前`;
+  return `${Math.floor(diff/86400)}日前`;
+}
 
-function addToLog(charIdx, text, isMe) {
+function addToLog(charIdx, text, label, createdAt, prepend) {
   const inner = document.getElementById('log-inner');
   const el = document.createElement('div');
   el.className = 'log-entry';
-  const label = isMe ? myName : 'なまえなし';
   const spriteDiv = document.createElement('div');
   spriteDiv.className = 'log-avatar';
   spriteDiv.appendChild(makeSprite(charIdx, 'xs'));
@@ -595,35 +594,30 @@ function addToLog(charIdx, text, isMe) {
   const body = document.createElement('div');
   body.className = 'log-body';
   const safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;');
-  body.innerHTML = `<div class="log-meta"><span class="log-user">${label}</span><span class="log-time">さっき</span></div><div class="log-text">${safe}</div>`;
+  const t = createdAt ? timeAgo(createdAt) : 'さっき';
+  body.innerHTML = `<div class="log-meta"><span class="log-user">${label||'なまえなし'}</span><span class="log-time">${t}</span></div><div class="log-text">${safe}</div>`;
   el.appendChild(body);
-  inner.insertBefore(el, inner.firstChild);
+  if (prepend) inner.insertBefore(el, inner.firstChild);
+  else inner.appendChild(el);
 }
 
-function startLog() {
-  const inner = document.getElementById('log-inner');
-  logLines.slice().reverse().forEach((l, i) => {
-    const el = document.createElement('div');
-    el.className = 'log-entry';
-    const t = logTimes[Math.min(i, logTimes.length-1)];
-    const spriteDiv = document.createElement('div');
-    spriteDiv.className = 'log-avatar';
-    spriteDiv.appendChild(makeSprite(l.ci, 'xs'));
-    el.appendChild(spriteDiv);
-    const body = document.createElement('div');
-    body.className = 'log-body';
-    const safe = l.text.replace(/&/g,'&amp;').replace(/</g,'&lt;');
-    body.innerHTML = `<div class="log-meta"><span class="log-user">なまえなし</span><span class="log-time">${t}</span></div><div class="log-text">${safe}</div>`;
-    el.appendChild(body);
-    inner.appendChild(el);
-  });
+async function startLog() {
+  // 過去30件を読み込む
+  const { data } = await sb.from('messages').select('*').order('created_at', {ascending: false}).limit(30);
+  if (data) {
+    data.reverse().forEach(m => {
+      const charIdx = CHARS.findIndex(c => c.name === m.character_name);
+      addToLog(charIdx >= 0 ? charIdx : 0, m.content, m.character_name, m.created_at, false);
+    });
+  }
 
-  setInterval(() => {
-    const l = logLines[logIdx % logLines.length];
-    showBubble(l.text, 10 + Math.random()*70, false);
-    addToLog(l.ci, l.text, false);
-    logIdx++;
-  }, 14000 + Math.random()*8000);
+  // リアルタイム購読
+  sb.channel('messages').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, payload => {
+    const m = payload.new;
+    const charIdx = CHARS.findIndex(c => c.name === m.character_name);
+    addToLog(charIdx >= 0 ? charIdx : 0, m.content, m.character_name, m.created_at, true);
+    showBubble(m.content, 10 + Math.random()*70, false);
+  }).subscribe();
 }
 
 // ===== NPC吹き出し =====
@@ -645,14 +639,17 @@ function startNpcBubbles() {
   }, 7000);
 }
 
-// ===== オンラインカウンター =====
+// ===== オンラインカウンター（Presence）=====
 function startOnlineCounter() {
-  let count = 3 + Math.floor(Math.random()*8);
-  document.getElementById('online-count').textContent = `今ここにいる人 ${count}人`;
-  setInterval(() => {
-    count = Math.max(1, count + (Math.random()>0.5?1:-1));
+  const room = sb.channel('hiroba', {config: {presence: {key: crypto.randomUUID()}}});
+  room.on('presence', {event: 'sync'}, () => {
+    const count = Object.keys(room.presenceState()).length;
     document.getElementById('online-count').textContent = `今ここにいる人 ${count}人`;
-  }, 18000);
+  }).subscribe(async status => {
+    if (status === 'SUBSCRIBED') {
+      await room.track({name: myName, char: myCharIdx});
+    }
+  });
 }
 
 // ===== 表紙 =====
