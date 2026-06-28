@@ -611,13 +611,21 @@ async function startLog() {
     });
   }
 
-  // リアルタイム購読
-  sb.channel('messages').on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, payload => {
-    const m = payload.new;
-    const charIdx = CHARS.findIndex(c => c.name === m.character_name);
-    addToLog(charIdx >= 0 ? charIdx : 0, m.content, m.character_name, m.created_at, true);
-    showBubble(m.content, 10 + Math.random()*70, false);
-  }).subscribe();
+  // ポーリング（3秒ごとに新着確認）
+  let lastId = data && data.length > 0 ? data[data.length-1].id : null;
+  setInterval(async () => {
+    const query = sb.from('messages').select('*').order('created_at', {ascending: true}).limit(10);
+    if (lastId) query.gt('id', lastId);
+    const { data: newMsgs } = await query;
+    if (newMsgs && newMsgs.length > 0) {
+      newMsgs.forEach(m => {
+        const charIdx = CHARS.findIndex(c => c.name === m.character_name);
+        addToLog(charIdx >= 0 ? charIdx : 0, m.content, m.character_name, m.created_at, true);
+        showBubble(m.content, 10 + Math.random()*70, false);
+      });
+      lastId = newMsgs[newMsgs.length-1].id;
+    }
+  }, 3000);
 }
 
 // ===== NPC吹き出し =====
