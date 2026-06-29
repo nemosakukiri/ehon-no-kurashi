@@ -326,7 +326,7 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
     </div>
     <label class="consent-check"><input type="checkbox" id="chk1" onchange="updateConsentBtn()"><span>上記のルールを読み、理解しました</span></label>
     <label class="consent-check"><input type="checkbox" id="chk2" onchange="updateConsentBtn()"><span>独り言がデータとして活用されることに同意します</span></label>
-    <button class="btn-primary" id="btn-enter" disabled onclick="enterHiroba()">絵本のくらしに入る</button>
+    <button class="btn-primary" id="btn-enter" disabled onclick="saveConsent().then(()=>saveUser()).then(()=>enterHiroba())">絵本のくらしに入る</button>
   </div>
 </div>
 
@@ -371,6 +371,14 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
 const SUPABASE_URL = 'https://bruhxkajbdgzrexmhtjq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_Fs_SbdSdpGkJvwv3SeORqw_1wYruTJq';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// 匿名ID管理
+function getAnonId() {
+  let id = localStorage.getItem('ehon_anon_id');
+  if (!id) { id = crypto.randomUUID(); localStorage.setItem('ehon_anon_id', id); }
+  return id;
+}
+const ANON_ID = getAnonId();
 
 const CHARS = [
   {name:"くま", url:"/chars/kuma.png"},
@@ -468,6 +476,21 @@ function goStep3() {
 function updateConsentBtn() {
   document.getElementById('btn-enter').disabled =
     !(document.getElementById('chk1').checked && document.getElementById('chk2').checked);
+}
+
+// ===== ユーザー保存 =====
+async function saveUser() {
+  await sb.from('users').upsert({
+    anon_id: ANON_ID,
+    character_name: myName,
+    char_idx: myCharIdx,
+    item_idx: myItemIdx,
+    role: myRole
+  }, {onConflict: 'anon_id'});
+}
+
+async function saveConsent() {
+  await sb.from('consents').upsert({anon_id: ANON_ID}, {onConflict: 'anon_id'});
 }
 
 // ===== 広場入場 =====
@@ -713,6 +736,7 @@ function selectItem(idx) {
   myItemIdx = (myItemIdx === idx) ? null : idx;
   buildItemPanel();
   createMyAvatar();
+  saveUser();
   document.getElementById('item-panel').style.display = 'none';
   document.getElementById('item-btn').textContent = '持ち物 ＋';
   itemPanelOpen = false;
