@@ -761,8 +761,9 @@ const pendingMsgContents = new Set();
 function toggleLog() {
   const panel = document.getElementById('log-panel');
   const btn = document.getElementById('log-toggle');
-  panel.classList.toggle('open');
-  btn.classList.toggle('open');
+  const isOpen = panel.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+  btn.textContent = isOpen ? '隠す' : 'みんなのつぶやき';
 }
 
 async function startLog() {
