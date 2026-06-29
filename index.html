@@ -251,7 +251,7 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
   #input-my-avatar { display: none; }
   #msg-input { padding: 7px 10px; font-size: 13px; }
   #say-btn { padding: 7px 12px; font-size: 12px; }
-  #log-panel { width: 180px; }
+  #log-panel { width: 180px; bottom: 46px; }
   #item-btn { bottom: 54px; }
 }
 
@@ -426,7 +426,6 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
 <button id="item-btn" onclick="toggleItemPanel()">持ち物 ＋</button>
 <div id="item-panel" style="display:none;position:fixed;bottom:110px;right:14px;z-index:9999;background:rgba(10,24,10,0.92);border:2px solid rgba(160,210,160,0.4);border-radius:16px;padding:12px;flex-wrap:wrap;gap:8px;width:280px;backdrop-filter:blur(12px);"></div>
 <!-- 独り言ログ -->
-<button id="log-toggle" onclick="toggleLog()" style="display:none;">つぶやき</button>
 <div id="log-overlay" onclick="toggleLog()"></div>
 <div id="log-panel">
   <div id="log-header">
@@ -439,7 +438,7 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
 
 <!-- トップバー -->
 <div id="top-bar" style="display:none;">
-  <button id="log-toggle" onclick="toggleLog()" style="display:none;">📋</button>
+  <button id="log-toggle" onclick="toggleLog()" style="display:none;">📋 つぶやき</button>
   <span class="logo">絵本のくらし</span>
   <span id="online-count">今ここにいる人 ― 人</span>
 </div>
@@ -871,7 +870,7 @@ async function updateOnlineCount() {
   if (data) {
     const unique = new Set(data.map(m => m.character_name)).size;
     document.getElementById('online-count').textContent = unique > 0
-      ? `10分以内にいた人 ${unique}人`
+      ? `今ここにいた人 ${unique}人`
       : 'しずかな広場';
   }
 }
