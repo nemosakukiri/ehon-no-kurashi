@@ -692,14 +692,20 @@ async function say() {
   showBubble(text, myX, true);
   addToLog(myCharIdx, text, myName, new Date().toISOString(), true, myRole);
   pendingMsgContents.add(text);
-  const { data: inserted } = await sb.from('messages').insert({
-    character_name: myName,
-    role: myRole,
-    content: text
+  let inserted = null;
+  const { data: d1, error: e1 } = await sb.from('messages').insert({
+    character_name: myName, role: myRole, content: text, anon_id: ANON_ID
   }).select();
-  if (inserted && inserted[0]) {
-    shownIds.add(inserted[0].id);
+  if (e1) {
+    // anon_id列がない場合のフォールバック
+    const { data: d2 } = await sb.from('messages').insert({
+      character_name: myName, role: myRole, content: text
+    }).select();
+    inserted = d2;
+  } else {
+    inserted = d1;
   }
+  if (inserted && inserted[0]) shownIds.add(inserted[0].id);
   pendingMsgContents.delete(text);
 }
 function showBubble(text, xPct, isMe) {
@@ -866,12 +872,13 @@ function startNpcBubbles() {
 // ===== オンラインカウンター（30分以内のアクティブユーザー）=====
 async function updateOnlineCount() {
   const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-  const { data } = await sb.from('messages').select('character_name').gte('created_at', since);
-  if (data) {
-    const unique = new Set(data.map(m => m.character_name)).size;
-    document.getElementById('online-count').textContent = unique > 0
-      ? `今ここにいた人 ${unique}人`
-      : 'しずかな広場';
+  const { data } = await sb.from('messages').select('character_name, anon_id').gte('created_at', since);
+  if (data && data.length > 0) {
+    const hasAnonId = data.some(m => m.anon_id);
+    const unique = new Set(data.map(m => hasAnonId ? m.anon_id : m.character_name).filter(Boolean)).size;
+    document.getElementById('online-count').textContent = `今ここにいた人 ${unique}人`;
+  } else if (data) {
+    document.getElementById('online-count').textContent = 'しずかな広場';
   }
 }
 function startOnlineCounter() {
