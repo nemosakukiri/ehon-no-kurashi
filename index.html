@@ -193,11 +193,15 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
 
 /* ===== 独り言ログ ===== */
 #log-panel {
+  display: none;
   position: fixed; left: 0; top: 48px; width: 240px; bottom: 64px;
   background: rgba(10,24,10,0.88); backdrop-filter: blur(12px);
   border-right: 1px solid rgba(255,255,255,0.07); overflow: hidden;
   flex-direction: column;
   z-index: 20;
+}
+#log-panel.open {
+  display: flex;
 }
 #log-toggle {
   position: fixed; left: 0; top: 50%; transform: translateY(-50%);
@@ -424,7 +428,7 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
 <div id="item-panel" style="display:none;position:fixed;bottom:110px;right:14px;z-index:9999;background:rgba(10,24,10,0.92);border:2px solid rgba(160,210,160,0.4);border-radius:16px;padding:12px;flex-wrap:wrap;gap:8px;width:280px;backdrop-filter:blur(12px);"></div>
 <!-- 独り言ログ -->
 <button id="log-toggle" onclick="toggleLog()" style="display:none;">つぶやき</button>
-<div id="log-panel" style="display:none;">
+<div id="log-panel">
   <div id="log-header">
     <span>みんなのつぶやき</span>
     <span id="log-sort">最新順 ▾</span>
@@ -760,13 +764,12 @@ function addToLog(charIdx, text, label, createdAt, prepend, role) {
 const shownIds = new Set();
 const pendingMsgContents = new Set();
 
-let _logOpen = false;
 function toggleLog() {
   const panel = document.getElementById('log-panel');
   const btn = document.getElementById('log-toggle');
-  _logOpen = !_logOpen;
-  panel.style.display = _logOpen ? 'flex' : 'none';
-  btn.textContent = _logOpen ? '隠す' : 'つぶやき';
+  const opening = !panel.classList.contains('open');
+  panel.classList.toggle('open', opening);
+  btn.textContent = opening ? '隠す' : 'つぶやき';
 }
 
 async function startLog() {
@@ -813,7 +816,11 @@ const npcTexts = [
 // ===== 時間帯による空の色・街灯 =====
 function startSkyTime() {
   function update() {
-    const h = new Date().getHours() + new Date().getMinutes() / 60;
+    const now = new Date();
+    const jstOffset = 9 * 60; // JST = UTC+9
+    const jstMs = now.getTime() + (now.getTimezoneOffset() + jstOffset) * 60000;
+    const jst = new Date(jstMs);
+    const h = jst.getHours() + jst.getMinutes() / 60;
     const overlay = document.getElementById('sky-overlay');
     const lamps = document.querySelectorAll('.street-lamp');
     let color, isNight = false;
