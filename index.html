@@ -118,6 +118,38 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
   background-size: cover; background-position: center top;
   background-color: #dce8d0; overflow: hidden;
 }
+#sky-overlay {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  transition: background-color 120s ease;
+}
+.street-lamp {
+  position: absolute; bottom: 18%; z-index: 2; display: flex; flex-direction: column; align-items: center;
+}
+.lamp-pole { width: 5px; height: 90px; background: #4a3f35; border-radius: 3px; }
+.lamp-head {
+  width: 22px; height: 14px; background: #3a322a;
+  border-radius: 4px 4px 6px 6px; margin-bottom: -1px;
+  position: relative; display: flex; align-items: center; justify-content: center;
+}
+.lamp-light {
+  width: 10px; height: 8px; border-radius: 50%;
+  background: rgba(255, 240, 160, 0);
+  box-shadow: 0 0 0px rgba(255, 220, 100, 0);
+  transition: background 2s ease, box-shadow 2s ease;
+}
+.lamp-glow {
+  position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
+  width: 80px; height: 80px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,220,100,0) 0%, rgba(255,200,60,0) 60%, transparent 100%);
+  transition: background 2s ease; pointer-events: none;
+}
+.street-lamp.night-on .lamp-light {
+  background: rgba(255, 240, 160, 0.95);
+  box-shadow: 0 0 8px 3px rgba(255, 220, 80, 0.8), 0 0 20px 8px rgba(255, 200, 60, 0.4);
+}
+.street-lamp.night-on .lamp-glow {
+  background: radial-gradient(circle, rgba(255,230,120,0.18) 0%, rgba(255,200,60,0.08) 55%, transparent 100%);
+}
 .avatar { position: absolute; text-align: center; user-select: none; }
 .avatar-name { font-size: 9px; color: rgba(255,255,255,0.9); background: rgba(0,0,0,0.38); border-radius: 6px; padding: 1px 5px; margin-top: 3px; white-space: nowrap; }
 
@@ -332,6 +364,23 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
 
 <!-- 広場 -->
 <div id="scene" style="display:none;">
+  <div id="sky-overlay"></div>
+  <!-- 街灯 -->
+  <div class="street-lamp" style="left:18%">
+    <div class="lamp-glow"></div>
+    <div class="lamp-head"><div class="lamp-light"></div></div>
+    <div class="lamp-pole"></div>
+  </div>
+  <div class="street-lamp" style="left:52%">
+    <div class="lamp-glow"></div>
+    <div class="lamp-head"><div class="lamp-light"></div></div>
+    <div class="lamp-pole"></div>
+  </div>
+  <div class="street-lamp" style="left:80%">
+    <div class="lamp-glow"></div>
+    <div class="lamp-head"><div class="lamp-light"></div></div>
+    <div class="lamp-pole"></div>
+  </div>
   <!-- NPCは JS で挿入 -->
   <div id="mana-char">
     <div class="mana-label">MANA</div>
@@ -512,6 +561,7 @@ function enterHiroba() {
   startLog();
   startNpcBubbles();
   startOnlineCounter();
+  startSkyTime();
 
   const greeting = myRole === 'kigyo'
     ? `${myName}さん、いらっしゃい。\nここは当事者の声の場所です。\nそっと聞いていてね。`
@@ -674,6 +724,41 @@ const npcTexts = [
   'ひとりじゃないよ',
   'お疲れ様',
 ];
+// ===== 時間帯による空の色・街灯 =====
+function startSkyTime() {
+  function update() {
+    const h = new Date().getHours() + new Date().getMinutes() / 60;
+    const overlay = document.getElementById('sky-overlay');
+    const lamps = document.querySelectorAll('.street-lamp');
+    let color, isNight = false;
+    if (h >= 5 && h < 7) {
+      // 夜明け: ピンク〜オレンジ
+      const t = (h - 5) / 2;
+      color = `rgba(255, ${Math.round(120 - t*40)}, ${Math.round(80 - t*60)}, ${0.35 - t*0.15})`;
+      isNight = true;
+    } else if (h >= 7 && h < 11) {
+      // 朝: 薄い青
+      color = 'rgba(180, 220, 255, 0.08)';
+    } else if (h >= 11 && h < 16) {
+      // 昼: ほぼ透明
+      color = 'rgba(0, 0, 0, 0)';
+    } else if (h >= 16 && h < 19) {
+      // 夕方: オレンジ〜赤
+      const t = (h - 16) / 3;
+      color = `rgba(${Math.round(255)}, ${Math.round(100 - t*60)}, ${Math.round(20)}, ${0.2 + t*0.25})`;
+      if (h >= 18) isNight = true;
+    } else {
+      // 夜: 深い藍色
+      color = 'rgba(10, 15, 60, 0.55)';
+      isNight = true;
+    }
+    overlay.style.backgroundColor = color;
+    lamps.forEach(l => l.classList.toggle('night-on', isNight));
+  }
+  update();
+  setInterval(update, 60000);
+}
+
 function startNpcBubbles() {
   let ti = 0;
   setInterval(() => {
