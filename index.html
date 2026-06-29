@@ -854,13 +854,13 @@ function startNpcBubbles() {
 
 // ===== オンラインカウンター（30分以内のアクティブユーザー）=====
 async function updateOnlineCount() {
-  const since = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+  const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
   const { data } = await sb.from('messages').select('character_name').gte('created_at', since);
   if (data) {
     const unique = new Set(data.map(m => m.character_name)).size;
     document.getElementById('online-count').textContent = unique > 0
-      ? `最近ここにいた人 ${unique}人`
-      : '今ここにいる人 ― 人';
+      ? `10分以内にいた人 ${unique}人`
+      : 'しずかな広場';
   }
 }
 function startOnlineCounter() {
