@@ -527,6 +527,19 @@ function updateConsentBtn() {
     !(document.getElementById('chk1').checked && document.getElementById('chk2').checked);
 }
 
+// ===== ユーザーデータ復元 =====
+async function loadUser() {
+  const { data } = await sb.from('users').select('*').eq('anon_id', ANON_ID).single();
+  if (!data) return;
+  myName = data.character_name || myName;
+  if (data.char_idx != null) { myCharIdx = data.char_idx; pickAvatar(myCharIdx); }
+  if (data.item_idx != null) myItemIdx = data.item_idx;
+  if (data.role) { myRole = data.role; pickRole(myRole); }
+  // 名前欄に反映
+  const ni = document.getElementById('name-input');
+  if (ni) ni.value = myName;
+}
+
 // ===== ユーザー保存 =====
 async function saveUser() {
   await sb.from('users').upsert({
@@ -641,11 +654,18 @@ function showBubble(text, xPct, isMe) {
   scene.appendChild(el);
   setTimeout(() => el.remove(), 9000);
 }
-function recordThis(btn) {
-  btn.textContent = '✓ 記録しました';
-  btn.style.background = 'rgba(60,140,60,0.7)';
+async function recordThis(btn, text) {
   btn.disabled = true;
-  setTimeout(() => showManaReply('受け取ったよ。ありがとう。'), 500);
+  btn.textContent = '保存中...';
+  const { error } = await sb.from('records').insert({ anon_id: ANON_ID, content: text });
+  if (error) {
+    btn.textContent = '📌 記録する';
+    btn.disabled = false;
+  } else {
+    btn.textContent = '✓ 記録しました';
+    btn.style.background = 'rgba(60,140,60,0.7)';
+    setTimeout(() => showManaReply('受け取ったよ。ありがとう。'), 500);
+  }
 }
 function showManaReply(text) {
   const el = document.getElementById('mana-bubble');
@@ -836,6 +856,7 @@ function selectItem(idx) {
   buildItemPanel();
   createMyAvatar();
   saveUser();
+  saveUser();
   document.getElementById('item-panel').style.display = 'none';
   document.getElementById('item-btn').textContent = '持ち物 ＋';
   itemPanelOpen = false;
@@ -872,7 +893,7 @@ function addItemOverlay(avatarEl) {
 document.addEventListener('DOMContentLoaded', () => {
   buildAvatarGrid();
   document.getElementById('msg-input').addEventListener('keydown', e => { if (e.key==='Enter') say(); });
-
+  loadUser();
 });
 </script>
 </body>
