@@ -453,11 +453,17 @@ const SUPABASE_URL = 'https://bruhxkajbdgzrexmhtjq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_Fs_SbdSdpGkJvwv3SeORqw_1wYruTJq';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// 匿名ID管理
+// 匿名ID管理（プライベートブラウズでlocalStorageが使えない場合も対応）
+let _sessionAnonId = null;
 function getAnonId() {
-  let id = localStorage.getItem('ehon_anon_id');
-  if (!id) { id = crypto.randomUUID(); localStorage.setItem('ehon_anon_id', id); }
-  return id;
+  try {
+    let id = localStorage.getItem('ehon_anon_id');
+    if (!id) { id = crypto.randomUUID(); localStorage.setItem('ehon_anon_id', id); }
+    return id;
+  } catch(e) {
+    if (!_sessionAnonId) _sessionAnonId = crypto.randomUUID();
+    return _sessionAnonId;
+  }
 }
 const ANON_ID = getAnonId();
 
@@ -754,12 +760,13 @@ function addToLog(charIdx, text, label, createdAt, prepend, role) {
 const shownIds = new Set();
 const pendingMsgContents = new Set();
 
+let _logOpen = false;
 function toggleLog() {
   const panel = document.getElementById('log-panel');
   const btn = document.getElementById('log-toggle');
-  const isOpen = panel.style.display !== 'none';
-  panel.style.display = isOpen ? 'none' : 'flex';
-  btn.textContent = isOpen ? 'みんなのつぶやき' : '隠す';
+  _logOpen = !_logOpen;
+  panel.style.display = _logOpen ? 'flex' : 'none';
+  btn.textContent = _logOpen ? '隠す' : 'つぶやき';
 }
 
 async function startLog() {
