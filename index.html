@@ -568,13 +568,15 @@ async function say() {
   if (!text) return;
   input.value = '';
   showBubble(text, myX, true);
-  addToLog(myCharIdx, text, myName, new Date().toISOString(), true);
   const { data: inserted } = await sb.from('messages').insert({
     character_name: myName,
     role: myRole,
     content: text
   }).select();
-  if (inserted && inserted[0]) shownIds.add(inserted[0].id);
+  if (inserted && inserted[0]) {
+    shownIds.add(inserted[0].id);
+    addToLog(myCharIdx, text, myName, inserted[0].created_at, true);
+  }
 }
 function showBubble(text, xPct, isMe) {
   const scene = document.getElementById('scene');
