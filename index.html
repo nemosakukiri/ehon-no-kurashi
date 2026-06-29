@@ -212,6 +212,11 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
   border-radius: 6px; color: rgba(255,255,255,0.8); font-size: 12px;
   padding: 3px 8px; cursor: pointer; font-family: inherit;
 }
+#log-close-bottom {
+  flex-shrink: 0; width: 100%; padding: 12px;
+  background: rgba(80,140,80,0.3); border: none; border-top: 1px solid rgba(255,255,255,0.1);
+  color: rgba(200,230,200,0.9); font-size: 14px; cursor: pointer; font-family: inherit;
+}
 #log-toggle {
   position: fixed; left: 0; top: 50%; transform: translateY(-50%);
   z-index: 21; background: rgba(20,50,20,0.85); border: 1px solid rgba(160,210,160,0.35);
@@ -446,6 +451,7 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
   </div>
   <div id="log-inner"></div>
   <div id="log-more">もっと見る</div>
+  <button onclick="toggleLog()" id="log-close-bottom">✕ 閉じる</button>
 </div>
 
 <!-- トップバー -->
