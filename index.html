@@ -427,7 +427,7 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
 <div id="item-panel" style="display:none;position:fixed;bottom:110px;right:14px;z-index:9999;background:rgba(10,24,10,0.92);border:2px solid rgba(160,210,160,0.4);border-radius:16px;padding:12px;flex-wrap:wrap;gap:8px;width:280px;backdrop-filter:blur(12px);"></div>
 <!-- 独り言ログ -->
 <button id="log-toggle" onclick="toggleLog()" style="display:none;">つぶやき</button>
-<div id="log-panel">
+<div id="log-panel" style="display:none;">
   <div id="log-header">
     <span>みんなのつぶやき</span>
     <span id="log-sort">最新順 ▾</span>
@@ -601,6 +601,8 @@ function enterHiroba() {
   document.getElementById('top-bar').style.display = 'flex';
   document.getElementById('input-wrap').style.display = 'flex';
   document.getElementById('log-toggle').style.display = 'block';
+  const lp = document.getElementById('log-panel');
+  lp.style.display = 'flex';
 
   // 入力欄アバター
   const inputAv = document.getElementById('input-my-avatar');
