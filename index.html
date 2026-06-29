@@ -200,28 +200,18 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
 #log-overlay.open { display: block; }
 #log-panel {
   display: none;
-  position: fixed; left: 0; top: 92px; width: 220px; bottom: 64px;
+  position: fixed; left: 0; top: 48px; width: 220px; bottom: 64px;
   background: rgba(10,24,10,0.95); backdrop-filter: blur(12px);
   border-right: 1px solid rgba(255,255,255,0.07); overflow: hidden;
   flex-direction: column;
   z-index: 20;
 }
 #log-panel.open { display: flex; }
-#log-close-float {
-  position: fixed; left: 0; top: 48px; width: 220px; z-index: 25;
-  background: rgba(30,80,30,0.97); border-bottom: 2px solid rgba(160,210,160,0.5);
-  padding: 12px 16px; color: rgba(200,230,200,1); font-size: 15px; font-weight: bold;
-  cursor: pointer; font-family: inherit; text-align: center;
-}
-@media (max-width: 768px) {
-  #log-close-float { width: 180px; }
-}
 #log-toggle {
-  position: fixed; left: 0; top: 50%; transform: translateY(-50%);
-  z-index: 21; background: rgba(20,50,20,0.85); border: 1px solid rgba(160,210,160,0.35);
-  border-left: none; border-radius: 0 10px 10px 0;
-  padding: 10px 6px; cursor: pointer; color: rgba(200,230,200,0.9); font-size: 13px;
-  writing-mode: vertical-rl; letter-spacing: 2px;
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px; padding: 4px 10px; cursor: pointer;
+  color: rgba(200,230,200,0.9); font-size: 12px; font-family: inherit;
+  flex-shrink: 0;
 }
 #log-header { display: none; }
 #log-sort { cursor: pointer; color: rgba(180,210,180,0.6); }
@@ -437,7 +427,6 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
 <div id="item-panel" style="display:none;position:fixed;bottom:110px;right:14px;z-index:9999;background:rgba(10,24,10,0.92);border:2px solid rgba(160,210,160,0.4);border-radius:16px;padding:12px;flex-wrap:wrap;gap:8px;width:280px;backdrop-filter:blur(12px);"></div>
 <!-- 独り言ログ -->
 <button id="log-toggle" onclick="toggleLog()" style="display:none;">つぶやき</button>
-<button id="log-close-float" onclick="toggleLog()" style="display:none;">✕ 閉じる</button>
 <div id="log-overlay" onclick="toggleLog()"></div>
 <div id="log-panel">
   <div id="log-header">
@@ -450,6 +439,7 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
 
 <!-- トップバー -->
 <div id="top-bar" style="display:none;">
+  <button id="log-toggle" onclick="toggleLog()" style="display:none;">📋</button>
   <span class="logo">絵本のくらし</span>
   <span id="online-count">今ここにいる人 ― 人</span>
 </div>
@@ -618,7 +608,7 @@ function enterHiroba() {
   document.getElementById('item-btn').style.display = 'block';
   document.getElementById('top-bar').style.display = 'flex';
   document.getElementById('input-wrap').style.display = 'flex';
-  document.getElementById('log-toggle').style.display = 'block';
+  document.getElementById('log-toggle').style.display = 'inline-block';
 
   // 入力欄アバター
   const inputAv = document.getElementById('input-my-avatar');
@@ -778,12 +768,10 @@ function toggleLog() {
   const panel = document.getElementById('log-panel');
   const overlay = document.getElementById('log-overlay');
   const btn = document.getElementById('log-toggle');
-  const closeFloat = document.getElementById('log-close-float');
   const opening = !panel.classList.contains('open');
   panel.classList.toggle('open', opening);
   overlay.classList.toggle('open', opening);
-  btn.textContent = opening ? '隠す' : 'つぶやき';
-  closeFloat.style.display = opening ? 'block' : 'none';
+  btn.textContent = opening ? '✕ 閉じる' : '📋 つぶやき';
 }
 
 async function startLog() {
