@@ -568,11 +568,13 @@ async function say() {
   if (!text) return;
   input.value = '';
   showBubble(text, myX, true);
-  await sb.from('messages').insert({
+  addToLog(myCharIdx, text, myName, new Date().toISOString(), true);
+  const { data: inserted } = await sb.from('messages').insert({
     character_name: myName,
     role: myRole,
     content: text
-  });
+  }).select();
+  if (inserted && inserted[0]) shownIds.add(inserted[0].id);
 }
 function showBubble(text, xPct, isMe) {
   const scene = document.getElementById('scene');
@@ -624,29 +626,35 @@ function addToLog(charIdx, text, label, createdAt, prepend) {
   else inner.appendChild(el);
 }
 
+const shownIds = new Set();
+
 async function startLog() {
   // 過去30件を読み込む
   const { data } = await sb.from('messages').select('*').order('created_at', {ascending: false}).limit(30);
   if (data) {
     data.reverse().forEach(m => {
+      shownIds.add(m.id);
       const charIdx = CHARS.findIndex(c => c.name === m.character_name);
       addToLog(charIdx >= 0 ? charIdx : 0, m.content, m.character_name, m.created_at, false);
     });
   }
 
   // ポーリング（3秒ごとに新着確認）
-  let lastId = data && data.length > 0 ? data[data.length-1].id : null;
+  let lastCreatedAt = data && data.length > 0 ? data[0].created_at : new Date().toISOString();
   setInterval(async () => {
-    const query = sb.from('messages').select('*').order('created_at', {ascending: true}).limit(10);
-    if (lastId) query.gt('id', lastId);
-    const { data: newMsgs } = await query;
+    const { data: newMsgs } = await sb.from('messages').select('*')
+      .gt('created_at', lastCreatedAt)
+      .order('created_at', {ascending: true})
+      .limit(10);
     if (newMsgs && newMsgs.length > 0) {
       newMsgs.forEach(m => {
+        if (shownIds.has(m.id)) return;
+        shownIds.add(m.id);
         const charIdx = CHARS.findIndex(c => c.name === m.character_name);
         addToLog(charIdx >= 0 ? charIdx : 0, m.content, m.character_name, m.created_at, true);
         showBubble(m.content, 10 + Math.random()*70, false);
       });
-      lastId = newMsgs[newMsgs.length-1].id;
+      lastCreatedAt = newMsgs[newMsgs.length-1].created_at;
     }
   }, 3000);
 }
