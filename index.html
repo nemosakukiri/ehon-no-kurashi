@@ -193,11 +193,22 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
 
 /* ===== 独り言ログ ===== */
 #log-panel {
-  display: none; position: fixed; left: 0; top: 48px; width: 240px; bottom: 64px;
-  background: rgba(10,24,10,0.72); backdrop-filter: blur(12px);
+  position: fixed; left: 0; top: 48px; width: 240px; bottom: 64px;
+  background: rgba(10,24,10,0.88); backdrop-filter: blur(12px);
   border-right: 1px solid rgba(255,255,255,0.07); overflow: hidden;
   display: flex; flex-direction: column;
+  transform: translateX(-100%); transition: transform 0.3s ease;
+  z-index: 20;
 }
+#log-panel.open { transform: translateX(0); }
+#log-toggle {
+  position: fixed; left: 0; top: 50%; transform: translateY(-50%);
+  z-index: 21; background: rgba(20,50,20,0.85); border: 1px solid rgba(160,210,160,0.35);
+  border-left: none; border-radius: 0 10px 10px 0;
+  padding: 10px 6px; cursor: pointer; color: rgba(200,230,200,0.9); font-size: 13px;
+  writing-mode: vertical-rl; letter-spacing: 2px; transition: left 0.3s ease;
+}
+#log-toggle.open { left: 240px; }
 #log-header {
   display: flex; justify-content: space-between; align-items: center;
   padding: 10px 12px 8px; border-bottom: 1px solid rgba(255,255,255,0.07);
@@ -415,7 +426,8 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
 <button id="item-btn" onclick="toggleItemPanel()">持ち物 ＋</button>
 <div id="item-panel" style="display:none;position:fixed;bottom:110px;right:14px;z-index:9999;background:rgba(10,24,10,0.92);border:2px solid rgba(160,210,160,0.4);border-radius:16px;padding:12px;flex-wrap:wrap;gap:8px;width:280px;backdrop-filter:blur(12px);"></div>
 <!-- 独り言ログ -->
-<div id="log-panel" style="display:none;">
+<button id="log-toggle" onclick="toggleLog()" style="display:none;">つぶやき</button>
+<div id="log-panel">
   <div id="log-header">
     <span>みんなのつぶやき</span>
     <span id="log-sort">最新順 ▾</span>
@@ -588,7 +600,7 @@ function enterHiroba() {
   document.getElementById('item-btn').style.display = 'block';
   document.getElementById('top-bar').style.display = 'flex';
   document.getElementById('input-wrap').style.display = 'flex';
-  document.getElementById('log-panel').style.display = 'flex';
+  document.getElementById('log-toggle').style.display = 'block';
 
   // 入力欄アバター
   const inputAv = document.getElementById('input-my-avatar');
@@ -743,6 +755,13 @@ function addToLog(charIdx, text, label, createdAt, prepend, role) {
 
 const shownIds = new Set();
 const pendingMsgContents = new Set();
+
+function toggleLog() {
+  const panel = document.getElementById('log-panel');
+  const btn = document.getElementById('log-toggle');
+  panel.classList.toggle('open');
+  btn.classList.toggle('open');
+}
 
 async function startLog() {
   // 過去30件を読み込む
