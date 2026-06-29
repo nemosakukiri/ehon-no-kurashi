@@ -568,6 +568,8 @@ async function say() {
   if (!text) return;
   input.value = '';
   showBubble(text, myX, true);
+  addToLog(myCharIdx, text, myName, new Date().toISOString(), true);
+  pendingMsgContents.add(text);
   const { data: inserted } = await sb.from('messages').insert({
     character_name: myName,
     role: myRole,
@@ -575,8 +577,8 @@ async function say() {
   }).select();
   if (inserted && inserted[0]) {
     shownIds.add(inserted[0].id);
-    addToLog(myCharIdx, text, myName, inserted[0].created_at, true);
   }
+  pendingMsgContents.delete(text);
 }
 function showBubble(text, xPct, isMe) {
   const scene = document.getElementById('scene');
@@ -629,6 +631,7 @@ function addToLog(charIdx, text, label, createdAt, prepend) {
 }
 
 const shownIds = new Set();
+const pendingMsgContents = new Set();
 
 async function startLog() {
   // 過去30件を読み込む
@@ -651,6 +654,7 @@ async function startLog() {
     if (newMsgs && newMsgs.length > 0) {
       newMsgs.forEach(m => {
         if (shownIds.has(m.id)) return;
+        if (m.character_name === myName && pendingMsgContents.has(m.content)) { shownIds.add(m.id); return; }
         shownIds.add(m.id);
         const charIdx = CHARS.findIndex(c => c.name === m.character_name);
         addToLog(charIdx >= 0 ? charIdx : 0, m.content, m.character_name, m.created_at, true);
