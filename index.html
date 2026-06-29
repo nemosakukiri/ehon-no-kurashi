@@ -872,7 +872,7 @@ function startNpcBubbles() {
 // ===== オンラインカウンター（30分以内のアクティブユーザー）=====
 async function updateOnlineCount() {
   const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-  const { data } = await sb.from('messages').select('character_name, anon_id').gte('created_at', since);
+  const { data } = await sb.from('messages').select('*').gte('created_at', since).limit(200);
   if (data && data.length > 0) {
     const hasAnonId = data.some(m => m.anon_id);
     const unique = new Set(data.map(m => hasAnonId ? m.anon_id : m.character_name).filter(Boolean)).size;
