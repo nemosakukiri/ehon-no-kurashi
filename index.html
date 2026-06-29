@@ -852,17 +852,20 @@ function startNpcBubbles() {
   }, 7000);
 }
 
-// ===== オンラインカウンター（Presence）=====
+// ===== オンラインカウンター（30分以内のアクティブユーザー）=====
+async function updateOnlineCount() {
+  const since = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+  const { data } = await sb.from('messages').select('character_name').gte('created_at', since);
+  if (data) {
+    const unique = new Set(data.map(m => m.character_name)).size;
+    document.getElementById('online-count').textContent = unique > 0
+      ? `最近ここにいた人 ${unique}人`
+      : '今ここにいる人 ― 人';
+  }
+}
 function startOnlineCounter() {
-  const room = sb.channel('hiroba', {config: {presence: {key: crypto.randomUUID()}}});
-  room.on('presence', {event: 'sync'}, () => {
-    const count = Object.keys(room.presenceState()).length;
-    document.getElementById('online-count').textContent = `今ここにいる人 ${count}人`;
-  }).subscribe(async status => {
-    if (status === 'SUBSCRIBED') {
-      await room.track({name: myName, char: myCharIdx});
-    }
-  });
+  updateOnlineCount();
+  setInterval(updateOnlineCount, 60000);
 }
 
 // ===== 表紙 =====
