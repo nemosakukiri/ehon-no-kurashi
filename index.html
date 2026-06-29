@@ -118,6 +118,9 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
   background-size: cover; background-position: center top;
   background-color: #dce8d0; overflow: hidden;
 }
+@media (max-width: 768px) {
+  #scene { bottom: 46px; }
+}
 #sky-overlay {
   position: absolute; inset: 0; z-index: 1; pointer-events: none;
   transition: background-color 120s ease;
@@ -231,6 +234,16 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
   cursor: pointer; font-family: inherit; white-space: nowrap;
 }
 #say-btn:hover { background: #4a6a4a; }
+
+@media (max-width: 768px) {
+  #input-wrap { height: 46px; padding: 0 8px; gap: 6px; }
+  #input-my-avatar { display: none; }
+  #msg-input { padding: 7px 10px; font-size: 13px; }
+  #say-btn { padding: 7px 12px; font-size: 12px; }
+  #log-panel { width: 180px; }
+  #item-btn { bottom: 54px; }
+}
+
 .record-btn {
   display: inline-block; margin-top: 6px; padding: 3px 8px; font-size: 10px;
   background: rgba(80,140,80,0.5); border: 1px solid rgba(160,210,160,0.4);
