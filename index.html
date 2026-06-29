@@ -192,16 +192,25 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
 #my-badge { display:flex; align-items:center; gap:6px; font-size:12px; color:#666; }
 
 /* ===== 独り言ログ ===== */
+#log-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 19;
+  background: rgba(0,0,0,0.4);
+}
+#log-overlay.open { display: block; }
 #log-panel {
   display: none;
-  position: fixed; left: 0; top: 48px; width: 240px; bottom: 64px;
-  background: rgba(10,24,10,0.88); backdrop-filter: blur(12px);
+  position: fixed; left: 0; top: 48px; width: 220px; bottom: 64px;
+  background: rgba(10,24,10,0.95); backdrop-filter: blur(12px);
   border-right: 1px solid rgba(255,255,255,0.07); overflow: hidden;
   flex-direction: column;
   z-index: 20;
 }
-#log-panel.open {
-  display: flex;
+#log-panel.open { display: flex; }
+#log-close {
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px; color: rgba(255,255,255,0.8); font-size: 12px;
+  padding: 3px 8px; cursor: pointer; font-family: inherit;
 }
 #log-toggle {
   position: fixed; left: 0; top: 50%; transform: translateY(-50%);
@@ -428,11 +437,12 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
 <div id="item-panel" style="display:none;position:fixed;bottom:110px;right:14px;z-index:9999;background:rgba(10,24,10,0.92);border:2px solid rgba(160,210,160,0.4);border-radius:16px;padding:12px;flex-wrap:wrap;gap:8px;width:280px;backdrop-filter:blur(12px);"></div>
 <!-- 独り言ログ -->
 <button id="log-toggle" onclick="toggleLog()" style="display:none;">つぶやき</button>
+<div id="log-overlay" onclick="toggleLog()"></div>
 <div id="log-panel">
   <div id="log-header">
     <span>みんなのつぶやき</span>
     <span id="log-sort">最新順 ▾</span>
-    <span onclick="toggleLog()" style="cursor:pointer;padding:2px 6px;font-size:13px;color:rgba(200,230,200,0.6);">✕</span>
+    <button onclick="toggleLog()" id="log-close">✕ 閉じる</button>
   </div>
   <div id="log-inner"></div>
   <div id="log-more">もっと見る</div>
@@ -766,9 +776,11 @@ const pendingMsgContents = new Set();
 
 function toggleLog() {
   const panel = document.getElementById('log-panel');
+  const overlay = document.getElementById('log-overlay');
   const btn = document.getElementById('log-toggle');
   const opening = !panel.classList.contains('open');
   panel.classList.toggle('open', opening);
+  overlay.classList.toggle('open', opening);
   btn.textContent = opening ? '隠す' : 'つぶやき';
 }
 
