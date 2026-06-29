@@ -317,16 +317,21 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
     </div>
     <h1>あなたはどちらですか？</h1>
     <p class="sub" style="margin-bottom:18px;">広場では誰でも同じキャラクターで過ごします。<br>役割は運営側にだけ見えます。</p>
-    <div class="role-grid">
+    <div class="role-grid" style="grid-template-columns:1fr 1fr 1fr;">
       <div class="role-card selected" id="role-tojisha" onclick="pickRole('tojisha')">
         <div class="role-icon">🏠</div>
         <div class="role-title">当事者・家族・支援者</div>
         <div class="role-desc">福祉・暮らしの当事者や身近で支える方</div>
       </div>
+      <div class="role-card" id="role-gyosei" onclick="pickRole('gyosei')">
+        <div class="role-icon">🏛️</div>
+        <div class="role-title">行政・公的機関</div>
+        <div class="role-desc">見学中</div>
+      </div>
       <div class="role-card" id="role-kigyo" onclick="pickRole('kigyo')">
         <div class="role-icon">🏢</div>
-        <div class="role-title">企業・研究・行政</div>
-        <div class="role-desc">調査・開発・政策づくりに関わる方</div>
+        <div class="role-title">企業・研究</div>
+        <div class="role-desc">情報収集中</div>
       </div>
     </div>
     <button class="btn-primary" onclick="goStep3()">次へ</button>
@@ -353,6 +358,10 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
       <p>絵本のくらしは、福祉・生活・社会課題に関わる人たちが匿名でゆるやかにつながる場所です。</p>
       <h3>💬 独り言について</h3>
       <p>ここに書いた言葉は、個人が特定されない形で生活課題の理解に活用されることがあります。個人を特定できる情報は書かないでください。</p>
+      <h3>🌳 広場のルール</h3>
+      <p>勧誘しない・営業しない・集客しない・DM誘導しない。ここは当事者の声の場所です。</p>
+      <h3>📌 掲示板について</h3>
+      <p>企業・行政の方が情報を掲示したい場合は、運営の承認後に掲示板への掲載が可能です。広場での直接の告知はご遠慮ください。</p>
       <h3>🤝 お互いへの配慮</h3>
       <p>他の人を傷つける言葉、誹謗中傷はご遠慮ください。</p>
     </div>
@@ -510,15 +519,19 @@ function goStep2() {
   document.getElementById('screen-create').classList.add('hidden');
   document.getElementById('screen-role').classList.remove('hidden');
 }
+const ROLE_BADGE = { tojisha: '', gyosei: '🏛️', kigyo: '🏢' };
+const ROLE_LABEL = { tojisha: '', gyosei: '行政（見学中）', kigyo: '企業（情報収集中）' };
+
 function pickRole(role) {
   myRole = role;
   document.getElementById('role-tojisha').classList.toggle('selected', role === 'tojisha');
+  document.getElementById('role-gyosei').classList.toggle('selected', role === 'gyosei');
   document.getElementById('role-kigyo').classList.toggle('selected', role === 'kigyo');
 }
 function goStep3() {
   setPreviewSprite('preview-sprite-consent', myCharIdx);
   document.getElementById('preview-name-consent').textContent = myName;
-  document.getElementById('preview-role-consent').textContent = myRole === 'kigyo' ? '企業・研究・行政' : '当事者・家族・支援者';
+  document.getElementById('preview-role-consent').textContent = ROLE_LABEL[myRole] || '当事者・家族・支援者';
   document.getElementById('screen-role').classList.add('hidden');
   document.getElementById('screen-consent').classList.remove('hidden');
 }
@@ -576,10 +589,24 @@ function enterHiroba() {
   startOnlineCounter();
   startSkyTime();
 
-  const greeting = myRole === 'kigyo'
-    ? `${myName}さん、いらっしゃい。\nここは当事者の声の場所です。\nそっと聞いていてね。`
-    : `${myName}さん、いらっしゃい。\nゆっくりしていってね。`;
-  setTimeout(() => showManaReply(greeting), 900);
+  let greeting;
+  if (myRole === 'gyosei' || myRole === 'kigyo') {
+    greeting = `${myName}さん、いらっしゃい。\nここは当事者の声の場所です。\nそっと聞いていてね。\n\n掲示板への掲載を希望される場合は運営までご連絡ください。`;
+    setTimeout(() => {
+      showManaReply(greeting);
+      setTimeout(() => {
+        const bubble = document.getElementById('mana-bubble');
+        if (bubble) {
+          bubble.innerHTML = '掲示板掲載のご希望は<br><a href="https://docs.google.com/forms/d/e/1FAIpQLSfIAOZ03L99ke3TndU2XO2ep1t_nO2Rh6UxVrL3vVAlLfw2Pg/viewform" target="_blank" style="color:#a0d4a0;">こちらのフォーム</a>から';
+          bubble.style.display = 'block';
+          setTimeout(() => { bubble.style.display = 'none'; }, 8000);
+        }
+      }, 4000);
+    }, 900);
+  } else {
+    greeting = `${myName}さん、いらっしゃい。\nゆっくりしていってね。`;
+    setTimeout(() => showManaReply(greeting), 900);
+  }
 }
 
 // ===== NPC配置 =====
@@ -631,7 +658,7 @@ async function say() {
   if (!text) return;
   input.value = '';
   showBubble(text, myX, true);
-  addToLog(myCharIdx, text, myName, new Date().toISOString(), true);
+  addToLog(myCharIdx, text, myName, new Date().toISOString(), true, myRole);
   pendingMsgContents.add(text);
   const { data: inserted } = await sb.from('messages').insert({
     character_name: myName,
@@ -682,7 +709,7 @@ function timeAgo(isoStr) {
   return `${Math.floor(diff/86400)}日前`;
 }
 
-function addToLog(charIdx, text, label, createdAt, prepend) {
+function addToLog(charIdx, text, label, createdAt, prepend, role) {
   const inner = document.getElementById('log-inner');
   const el = document.createElement('div');
   el.className = 'log-entry';
@@ -694,7 +721,8 @@ function addToLog(charIdx, text, label, createdAt, prepend) {
   body.className = 'log-body';
   const safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;');
   const t = createdAt ? timeAgo(createdAt) : 'さっき';
-  body.innerHTML = `<div class="log-meta"><span class="log-user">${label||'なまえなし'}</span><span class="log-time">${t}</span></div><div class="log-text">${safe}</div>`;
+  const badge = (role && ROLE_BADGE[role]) ? `<span style="font-size:10px;opacity:0.7;margin-left:3px;">${ROLE_BADGE[role]}</span>` : '';
+  body.innerHTML = `<div class="log-meta"><span class="log-user">${label||'なまえなし'}${badge}</span><span class="log-time">${t}</span></div><div class="log-text">${safe}</div>`;
   el.appendChild(body);
   if (prepend) inner.insertBefore(el, inner.firstChild);
   else inner.appendChild(el);
@@ -710,7 +738,7 @@ async function startLog() {
     data.reverse().forEach(m => {
       shownIds.add(m.id);
       const charIdx = CHARS.findIndex(c => c.name === m.character_name);
-      addToLog(charIdx >= 0 ? charIdx : 0, m.content, m.character_name, m.created_at, false);
+      addToLog(charIdx >= 0 ? charIdx : 0, m.content, m.character_name, m.created_at, false, m.role);
     });
   }
 
@@ -727,7 +755,7 @@ async function startLog() {
         if (m.character_name === myName && pendingMsgContents.has(m.content)) { shownIds.add(m.id); return; }
         shownIds.add(m.id);
         const charIdx = CHARS.findIndex(c => c.name === m.character_name);
-        addToLog(charIdx >= 0 ? charIdx : 0, m.content, m.character_name, m.created_at, true);
+        addToLog(charIdx >= 0 ? charIdx : 0, m.content, m.character_name, m.created_at, true, m.role);
         showBubble(m.content, 10 + Math.random()*70, false);
       });
       lastCreatedAt = newMsgs[newMsgs.length-1].created_at;
