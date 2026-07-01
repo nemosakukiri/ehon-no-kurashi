@@ -630,7 +630,7 @@ function enterHiroba() {
   createMyAvatar();
   startLog();
   startNpcBubbles();
-  startOnlineCounter();
+  startPresence();
   startSkyTime();
 
   let greeting;
@@ -884,21 +884,29 @@ function startNpcBubbles() {
   }, 7000);
 }
 
-// ===== オンラインカウンター（30分以内のアクティブユーザー）=====
-async function updateOnlineCount() {
-  const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-  const { data } = await sb.from('messages').select('*').gte('created_at', since).limit(200);
-  if (data && data.length > 0) {
-    const hasAnonId = data.some(m => m.anon_id);
-    const unique = new Set(data.map(m => hasAnonId ? m.anon_id : m.character_name).filter(Boolean)).size;
-    document.getElementById('online-count').textContent = `今ここにいた人 ${unique}人`;
-  } else if (data) {
-    document.getElementById('online-count').textContent = 'しずかな広場';
-  }
-}
-function startOnlineCounter() {
-  updateOnlineCount();
-  setInterval(updateOnlineCount, 60000);
+// ===== オンライン人数（Realtime Presence：今ページを開いている実人数）=====
+let presenceChannel = null;
+function startPresence() {
+  presenceChannel = sb.channel('hiroba-presence', {
+    config: { presence: { key: ANON_ID } }
+  });
+  presenceChannel
+    .on('presence', { event: 'sync' }, () => {
+      const state = presenceChannel.presenceState();
+      // key（=anon_id）単位で数える → 同一人物が複数タブでも1人
+      const count = Object.keys(state).length;
+      const el = document.getElementById('online-count');
+      if (el) el.textContent = count > 0 ? `今ここにいる人 ${count}人` : 'しずかな広場';
+    })
+    .subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await presenceChannel.track({ anon_id: ANON_ID, at: Date.now() });
+      }
+    });
+  // ページを離れるときに即座に離脱（数がすぐ減る）
+  window.addEventListener('beforeunload', () => {
+    if (presenceChannel) presenceChannel.untrack();
+  });
 }
 
 // ===== 表紙 =====
