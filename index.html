@@ -452,7 +452,7 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
 <div id="top-bar" style="display:none;">
   <button id="log-toggle" onclick="toggleLog()" style="display:none;">📋 つぶやき</button>
   <span class="logo">絵本のくらし</span>
-  <span id="online-count">今ここにいる人 ― 人</span>
+  <span id="online-count">しずかなひろば</span>
 </div>
 
 <!-- 入力欄 -->
@@ -896,7 +896,8 @@ function startPresence() {
       // key（=anon_id）単位で数える → 同一人物が複数タブでも1人
       const count = Object.keys(state).length;
       const el = document.getElementById('online-count');
-      if (el) el.textContent = count > 0 ? `今ここにいる人 ${count}人` : 'しずかな広場';
+      // 1人（自分だけ）や0人のときは人数を出さず「しずかなひろば」
+      if (el) el.textContent = count > 1 ? `今ここにいる人 ${count}人` : 'しずかなひろば';
     })
     .subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
