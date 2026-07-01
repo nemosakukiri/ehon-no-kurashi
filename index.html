@@ -253,6 +253,7 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
   #say-btn { padding: 7px 12px; font-size: 12px; }
   #log-panel { width: 180px; bottom: 46px; }
   #item-btn { bottom: 54px; }
+  #log-fab { bottom: 54px; }
 }
 
 .record-btn {
@@ -270,6 +271,15 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
   display: none; backdrop-filter: blur(8px);
 }
 #item-btn:hover { background: rgba(40,70,40,0.9); }
+/* つぶやきパネルの開閉ボタン（左下・常に手前） */
+#log-fab {
+  position: fixed; bottom: 72px; left: 14px; z-index: 111;
+  background: rgba(20,40,20,0.82); border: 1px solid rgba(160,210,160,0.35);
+  border-radius: 14px; padding: 8px 14px; color: rgba(200,230,200,0.9);
+  font-size: 12px; cursor: pointer; font-family: inherit;
+  display: none; backdrop-filter: blur(8px);
+}
+#log-fab:hover { background: rgba(40,70,40,0.9); }
 #item-panel {
   position: fixed; bottom: 110px; right: 14px; z-index: 110;
   background: rgba(10,24,10,0.88); border: 1px solid rgba(160,210,160,0.2);
@@ -424,6 +434,8 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
 
 <!-- くらしアイテム -->
 <button id="item-btn" onclick="toggleItemPanel()">持ち物 ＋</button>
+<!-- つぶやきパネル開閉ボタン -->
+<button id="log-fab" onclick="toggleLog()">📋 つぶやき</button>
 <div id="item-panel" style="display:none;position:fixed;bottom:110px;right:14px;z-index:9999;background:rgba(10,24,10,0.92);border:2px solid rgba(160,210,160,0.4);border-radius:16px;padding:12px;flex-wrap:wrap;gap:8px;width:280px;backdrop-filter:blur(12px);"></div>
 <!-- 独り言ログ -->
 <div id="log-overlay" onclick="toggleLog()"></div>
@@ -607,7 +619,7 @@ function enterHiroba() {
   document.getElementById('item-btn').style.display = 'block';
   document.getElementById('top-bar').style.display = 'flex';
   document.getElementById('input-wrap').style.display = 'flex';
-  document.getElementById('log-toggle').style.display = 'inline-block';
+  document.getElementById('log-fab').style.display = 'block';
 
   // 入力欄アバター
   const inputAv = document.getElementById('input-my-avatar');
@@ -773,10 +785,13 @@ function toggleLog() {
   const panel = document.getElementById('log-panel');
   const overlay = document.getElementById('log-overlay');
   const btn = document.getElementById('log-toggle');
+  const fab = document.getElementById('log-fab');
   const opening = !panel.classList.contains('open');
   panel.classList.toggle('open', opening);
   overlay.classList.toggle('open', opening);
-  btn.textContent = opening ? '✕ 閉じる' : '📋 つぶやき';
+  const label = opening ? '✕ 閉じる' : '📋 つぶやき';
+  if (btn) btn.textContent = label;
+  if (fab) fab.textContent = label;
 }
 
 async function startLog() {
