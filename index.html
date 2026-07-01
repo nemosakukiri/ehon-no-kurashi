@@ -195,13 +195,13 @@ body { background: #1a1a2e; font-family: 'Hiragino Kaku Gothic Pro', 'Noto Sans 
 #log-overlay {
   display: none;
   position: fixed; inset: 0; z-index: 19;
-  background: rgba(0,0,0,0.4);
+  background: transparent;
 }
 #log-overlay.open { display: block; }
 #log-panel {
   display: none;
   position: fixed; left: 0; top: 48px; width: 220px; bottom: 64px;
-  background: rgba(10,24,10,0.95); backdrop-filter: blur(12px);
+  background: rgba(10,24,10,0.86); backdrop-filter: blur(12px);
   border-right: 1px solid rgba(255,255,255,0.07); overflow: hidden;
   flex-direction: column;
   z-index: 20;
